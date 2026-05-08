@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String          @id @default(cuid())
+  email        String          @unique
+  passwordHash String
+  name         String
+  role         UserRole        @default(USER)
+  memberships  OrgMembership[]
+  apis         API[]
+  createdAt    DateTime        @default(now())
+}
+
+model Organization {
+  id          String          @id @default(cuid())
+  name        String
+  slug        String          @unique
+  memberships OrgMembership[]
+  apis        API[]
+  createdAt   DateTime        @default(now())
+}
+
+model OrgMembership {
+  user     User         @relation(fields: [userId], references: [id])
+  userId   String
+  org      Organization @relation(fields: [orgId], references: [id])
+  orgId    String
+  role     OrgRole      @default(MEMBER)
+  joinedAt DateTime     @default(now())
+
+  @@id([userId, orgId])
+}
+
+model API {
+  id          String       @id @default(cuid())
+  org         Organization @relation(fields: [orgId], references: [id])
+  orgId       String
+  owner       User         @relation(fields: [ownerId], references: [id])
+  ownerId     String
+  name        String
+  slug        String
+  description String?
+  type        APIType
+  category    String?
+  versions    APIVersion[]
+  createdAt   DateTime     @default(now())
+
+  @@unique([orgId, slug])
+}
+
+model APIVersion {
+  id          String        @id @default(cuid())
+  api         API           @relation(fields: [apiId], references: [id])
+  apiId       String
+  version     String
+  specKey     String
+  specType    APIType
+  status      VersionStatus @default(DRAFT)
+  docPages    DocPage[]
+  mockConfig  MockConfig?
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+
+  @@unique([apiId, version])
+}
+
+model DocPage {
+  id           String     @id @default(cuid())
+  apiVersion   APIVersion @relation(fields: [apiVersionId], references: [id])
+  apiVersionId String
+  slug         String
+  title        String
+  content      String     @db.Text
+  order        Int        @default(0)
+
+  @@unique([apiVersionId, slug])
+}
+
+model MockConfig {
+  id           String     @id @default(cuid())
+  apiVersion   APIVersion @relation(fields: [apiVersionId], references: [id])
+  apiVersionId String     @unique
+  baseDelayMs  Int        @default(0)
+}
+
+enum UserRole {
+  USER
+  SUPERADMIN
+}
+
+enum OrgRole {
+  MEMBER
+  ADMIN
+}
+
+enum APIType {
+  REST
+  GRAPHQL
+}
+
+enum VersionStatus {
+  DRAFT
+  PUBLISHED
+  DEPRECATED
+}
