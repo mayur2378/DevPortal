@@ -16,6 +16,7 @@ model User {
   memberships  OrgMembership[]
   apis         API[]
   createdAt    DateTime        @default(now())
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Organization {
@@ -88,6 +89,15 @@ model MockConfig {
   apiVersion   APIVersion @relation(fields: [apiVersionId], references: [id])
   apiVersionId String     @unique
   baseDelayMs  Int        @default(0)
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 enum UserRole {
