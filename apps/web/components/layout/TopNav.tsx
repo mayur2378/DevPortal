@@ -10,7 +10,11 @@ const navLinks = [
   { href: "/my-apis", label: "My APIs" },
 ];
 
-export function TopNav() {
+interface TopNavProps {
+  role?: string;
+}
+
+export function TopNav({ role }: TopNavProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
 
@@ -35,6 +39,19 @@ export function TopNav() {
             {link.label}
           </Link>
         ))}
+        {role === "SUPERADMIN" && (
+          <Link
+            href="/admin"
+            className={cn(
+              "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+              pathname.startsWith("/admin")
+                ? "bg-amber-950 text-amber-400"
+                : "text-amber-400/70 hover:text-amber-400 hover:bg-amber-950/50"
+            )}
+          >
+            Admin
+          </Link>
+        )}
       </nav>
 
       <div className="ml-auto flex items-center gap-3">
