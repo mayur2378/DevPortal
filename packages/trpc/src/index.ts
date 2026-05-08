@@ -5,10 +5,12 @@ export type { TRPCContext } from "./context";
 import { createTRPCRouter } from "./trpc";
 import { authRouter } from "./routers/auth";
 import { orgRouter } from "./routers/org";
+import { userRouter } from "./routers/user";
 
 export const appRouter = createTRPCRouter({
   auth: authRouter,
   org: orgRouter,
+  user: userRouter,
 });
 
 export type AppRouter = typeof appRouter;
