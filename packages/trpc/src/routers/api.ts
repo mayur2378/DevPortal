@@ -51,6 +51,18 @@ export const apiRouter = createTRPCRouter({
       });
     }),
 
+  myApis: protectedProcedure.query(({ ctx }) =>
+    ctx.db.api.findMany({
+      where: { ownerId: ctx.session.user.id },
+      include: {
+        org: true,
+        versions: { orderBy: { createdAt: "desc" }, take: 1, select: { version: true, status: true, lifecycleStatus: true } },
+        _count: { select: { versions: true, subscriptions: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    })
+  ),
+
   getById: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(({ ctx, input }) =>
