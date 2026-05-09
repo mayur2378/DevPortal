@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { VisibilityChip } from "@/components/ui/VisibilityChip";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { MouseEvent } from "react";
 
 interface Api {
   id: string;
@@ -68,6 +69,16 @@ export function ApiCard({ api }: { api: Api }) {
       <div className="flex items-center justify-between text-xs text-slate-500">
         <span>{api.org.name}</span>
         <span>{api._count.versions} version{api._count.versions !== 1 ? "s" : ""}</span>
+      </div>
+
+      <div className="pt-2 border-t border-slate-800 mt-2">
+        <Link
+          href={`/subscribe/${api.id}`}
+          onClick={(e: MouseEvent) => e.stopPropagation()}
+          className="block w-full text-center text-xs bg-sky-900/50 hover:bg-sky-800/70 text-sky-400 hover:text-sky-300 border border-sky-800/50 py-1.5 rounded-lg transition-colors font-medium"
+        >
+          Request Access
+        </Link>
       </div>
     </Link>
   );
