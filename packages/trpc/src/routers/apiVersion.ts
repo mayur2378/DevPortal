@@ -19,8 +19,9 @@ export const apiVersionRouter = createTRPCRouter({
       z.object({
         apiId: z.string(),
         version: z.string().regex(/^\d+\.\d+\.\d+$/),
-        specKey: z.string(),
-        specType: z.enum(["REST", "GRAPHQL"]),
+        specKey: z.string().optional(),
+        specUrl: z.string().url().optional(),
+        specType: z.enum(["REST", "GRAPHQL", "ASYNC_API", "EVENT", "WEBHOOK", "SOAP"]),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -31,7 +32,7 @@ export const apiVersionRouter = createTRPCRouter({
       }
 
       return ctx.prisma.apiVersion.create({
-        data: { apiId: input.apiId, version: input.version, specKey: input.specKey, specType: input.specType },
+        data: { apiId: input.apiId, version: input.version, specKey: input.specKey, specUrl: input.specUrl, specType: input.specType },
         select: versionSelect,
       });
     }),
@@ -73,7 +74,7 @@ export const apiVersionRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const version = await ctx.prisma.apiVersion.findUnique({
         where: { id: input.versionId },
-        select: { specKey: true, specType: true },
+        select: { specKey: true, specUrl: true, specType: true, authMethod: true, rateLimitPolicy: true, slaInfo: true },
       });
       if (!version) throw new TRPCError({ code: "NOT_FOUND" });
       return version;
