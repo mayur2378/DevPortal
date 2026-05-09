@@ -4,29 +4,71 @@ interface MockResponse {
   body: unknown;
 }
 
-function generateFromSchema(schema: any): unknown {
-  if (!schema) return null;
+function resolveRef(ref: string, spec: any): any {
+  const parts = ref.replace(/^#\//, "").split("/");
+  let current = spec;
+  for (const part of parts) {
+    current = current?.[decodeURIComponent(part.replace(/~1/g, "/").replace(/~0/g, "~"))];
+  }
+  return current;
+}
+
+function generateFromSchema(schema: any, spec: any, depth = 0): unknown {
+  if (!schema || depth > 8) return null;
+
+  if (schema.$ref) {
+    return generateFromSchema(resolveRef(schema.$ref, spec), spec, depth + 1);
+  }
+
+  if (schema.example !== undefined) return schema.example;
+
+  if (schema.allOf) {
+    const obj: Record<string, unknown> = {};
+    for (const sub of schema.allOf) {
+      const resolved = generateFromSchema(sub, spec, depth + 1);
+      if (resolved !== null && typeof resolved === "object" && !Array.isArray(resolved)) {
+        Object.assign(obj, resolved);
+      }
+    }
+    return Object.keys(obj).length ? obj : null;
+  }
+
+  if (schema.anyOf || schema.oneOf) {
+    const variants: any[] = schema.anyOf ?? schema.oneOf;
+    return generateFromSchema(variants[0], spec, depth + 1);
+  }
+
   switch (schema.type) {
     case "object": {
       const obj: Record<string, unknown> = {};
       for (const [key, prop] of Object.entries(schema.properties ?? {})) {
-        obj[key] = generateFromSchema(prop as any);
+        obj[key] = generateFromSchema(prop as any, spec, depth + 1);
       }
       return obj;
     }
     case "array":
-      return [generateFromSchema(schema.items)];
+      return [generateFromSchema(schema.items, spec, depth + 1)];
     case "string":
       if (schema.enum) return schema.enum[0];
       if (schema.format === "date-time") return new Date().toISOString();
       if (schema.format === "uuid") return "00000000-0000-0000-0000-000000000000";
-      return schema.example ?? "string";
+      if (schema.format === "email") return "user@example.com";
+      if (schema.format === "uri") return "https://example.com";
+      if (schema.format === "date") return new Date().toISOString().split("T")[0];
+      return schema.example ?? schema.default ?? "string";
     case "integer":
     case "number":
-      return schema.example ?? 1;
+      return schema.example ?? schema.default ?? 1;
     case "boolean":
-      return schema.example ?? true;
+      return schema.example ?? schema.default ?? true;
     default:
+      if (schema.properties) {
+        const obj: Record<string, unknown> = {};
+        for (const [key, prop] of Object.entries(schema.properties)) {
+          obj[key] = generateFromSchema(prop as any, spec, depth + 1);
+        }
+        return obj;
+      }
       return null;
   }
 }
@@ -66,7 +108,7 @@ export async function generateOpenApiResponse(
   const body =
     content.example ??
     content.examples?.[Object.keys(content.examples)[0]]?.value ??
-    generateFromSchema(content.schema);
+    generateFromSchema(content.schema, spec);
 
   return { statusCode, headers: { "Content-Type": "application/json" }, body };
 }
