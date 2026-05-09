@@ -101,6 +101,54 @@ async function main() {
     }
   }
 
+  const allApis = await prisma.api.findMany({ where: { orgId: org.id } });
+  const apiBySlug = Object.fromEntries(allApis.map((a) => [a.slug, a]));
+
+  const healthcareProduct = await prisma.aPIProduct.upsert({
+    where: { slug: "healthcare-core" },
+    update: {},
+    create: {
+      name: "Healthcare Core Platform",
+      slug: "healthcare-core",
+      description: "Essential APIs for healthcare member, provider, and claims operations.",
+      ownerId: owner.id,
+      roadmap: "# Q3 2026\n- [ ] Add member consent API\n- [ ] Enhance claims status webhooks\n\n# Q4 2026\n- [x] Prior auth API v2\n- [ ] Provider credentialing API",
+      documentation: "## Overview\nThe Healthcare Core Platform provides a unified set of APIs for core operations.\n\n## Getting Started\n1. Register an application\n2. Request product access\n3. Use mock credentials for development",
+    },
+  });
+
+  for (const slug of ["customer-api", "claims-api", "member-eligibility-api", "prior-auth-api"]) {
+    if (apiBySlug[slug]) {
+      await prisma.aPIProductItem.upsert({
+        where: { productId_apiId: { productId: healthcareProduct.id, apiId: apiBySlug[slug].id } },
+        update: {},
+        create: { productId: healthcareProduct.id, apiId: apiBySlug[slug].id },
+      });
+    }
+  }
+
+  const eventsProduct = await prisma.aPIProduct.upsert({
+    where: { slug: "event-streaming" },
+    update: {},
+    create: {
+      name: "Event Streaming Bundle",
+      slug: "event-streaming",
+      description: "Kafka and webhook APIs for real-time integration patterns.",
+      ownerId: owner.id,
+      roadmap: "# Active\n- [x] Kafka Customer Events\n- [x] Webhook Notification API\n\n# Planned\n- [ ] Payment Events API (GA)\n- [ ] Provider Event Stream",
+    },
+  });
+
+  for (const slug of ["kafka-customer-events", "payment-events-api", "webhook-notification-api"]) {
+    if (apiBySlug[slug]) {
+      await prisma.aPIProductItem.upsert({
+        where: { productId_apiId: { productId: eventsProduct.id, apiId: apiBySlug[slug].id } },
+        update: {},
+        create: { productId: eventsProduct.id, apiId: apiBySlug[slug].id },
+      });
+    }
+  }
+
   console.log("✅ Enterprise seed complete");
 }
 
