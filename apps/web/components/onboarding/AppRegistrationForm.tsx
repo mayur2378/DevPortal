@@ -7,7 +7,10 @@ export function AppRegistrationForm() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
-  const create = trpc.application.create.useMutation({ onSuccess: () => router.push("/my-apps"), onError: (e) => setError(e.message) });
+  const create = trpc.application.create.useMutation({
+    onSuccess: () => { router.refresh(); router.push("/my-apps"); },
+    onError: (e) => setError(e.message),
+  });
   return (
     <form onSubmit={(e) => { e.preventDefault(); create.mutate({ name, description }); }} className="space-y-4">
       <div><label className="block text-sm font-medium text-slate-300 mb-1">App Name *</label><input value={name} onChange={(e) => setName(e.target.value)} required placeholder="My Integration App" className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-sky-500" /></div>
