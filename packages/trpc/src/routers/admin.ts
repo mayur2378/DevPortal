@@ -114,8 +114,74 @@ export const adminRouter = createTRPCRouter({
 
   domain: createTRPCRouter({
     list: publicProcedure.query(({ ctx }) => ctx.prisma.domain.findMany({ orderBy: { name: "asc" } })),
+    create: adminProcedure
+      .input(z.object({ name: z.string().min(1), description: z.string().optional() }))
+      .mutation(({ ctx, input }) => ctx.db.domain.create({ data: input })),
+    delete: adminProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(({ ctx, input }) => ctx.db.domain.delete({ where: { id: input.id } })),
   }),
   tag: createTRPCRouter({
     list: publicProcedure.query(({ ctx }) => ctx.prisma.tag.findMany({ orderBy: { name: "asc" } })),
+    create: adminProcedure
+      .input(z.object({ name: z.string().min(1) }))
+      .mutation(({ ctx, input }) => ctx.db.tag.create({ data: input })),
+    delete: adminProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(({ ctx, input }) => ctx.db.tag.delete({ where: { id: input.id } })),
+  }),
+
+  apiManagement: createTRPCRouter({
+    list: adminProcedure.query(({ ctx }) =>
+      ctx.db.api.findMany({
+        include: { org: true, owner: { select: { id: true, name: true } }, domain: true, tags: { include: { tag: true } }, versions: { take: 1, orderBy: { createdAt: "desc" } } },
+        orderBy: { createdAt: "desc" },
+      })
+    ),
+    getById: adminProcedure
+      .input(z.object({ id: z.string() }))
+      .query(({ ctx, input }) =>
+        ctx.db.api.findUniqueOrThrow({
+          where: { id: input.id },
+          include: { org: true, owner: { select: { id: true, name: true, email: true } }, domain: true, tags: { include: { tag: true } }, versions: { orderBy: { createdAt: "desc" } } },
+        })
+      ),
+    update: adminProcedure
+      .input(z.object({
+        id: z.string(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        visibility: z.enum(["INTERNAL", "PARTNER", "PUBLIC"]).optional(),
+        domainId: z.string().optional(),
+        businessCapability: z.string().optional(),
+        systemOfRecord: z.string().optional(),
+        supportContact: z.string().optional(),
+        piiIndicator: z.boolean().optional(),
+        phiIndicator: z.boolean().optional(),
+        dataClassification: z.enum(["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED"]).optional(),
+        gatewayRef: z.string().optional(),
+        runtimeEndpoint: z.string().optional(),
+      }))
+      .mutation(({ ctx, input }) => {
+        const { id, ...data } = input;
+        return ctx.db.api.update({ where: { id }, data });
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(({ ctx, input }) => ctx.db.api.delete({ where: { id: input.id } })),
+  }),
+
+  subscriptionRequests: createTRPCRouter({
+    listAll: adminProcedure.query(({ ctx }) =>
+      ctx.db.subscriptionRequest.findMany({
+        include: {
+          api: { include: { org: true } },
+          application: { include: { owner: { select: { id: true, name: true, email: true } } } },
+          requester: { select: { id: true, name: true, email: true } },
+          reviewer: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      })
+    ),
   }),
 });
