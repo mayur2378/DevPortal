@@ -4,11 +4,14 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+const APPROVER_ROLES = ["SUPERADMIN", "API_PRODUCT_OWNER", "API_DEVELOPER"];
+
 interface SidebarProps {
   orgs: { id: string; name: string; slug: string }[];
+  role?: string;
 }
 
-export function Sidebar({ orgs }: SidebarProps) {
+export function Sidebar({ orgs, role }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const selectedOrg = searchParams.get("org");
@@ -92,7 +95,7 @@ export function Sidebar({ orgs }: SidebarProps) {
           {[
             { href: "/my-apps", label: "My Applications" },
             { href: "/my-subscriptions", label: "My Subscriptions" },
-            { href: "/approvals", label: "Approval Queue" },
+            ...(role && APPROVER_ROLES.includes(role) ? [{ href: "/approvals", label: "Approval Queue" }] : []),
             { href: "/governance", label: "Governance" },
             { href: "/lifecycle", label: "Lifecycle" },
             { href: "/analytics", label: "Analytics" },

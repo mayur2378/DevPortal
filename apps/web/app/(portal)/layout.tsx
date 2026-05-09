@@ -15,7 +15,7 @@ export default async function PortalLayout({ children }: { children: React.React
     <div className="min-h-screen bg-slate-950">
       <TopNav role={role} />
       <Suspense>
-        <Sidebar orgs={orgs} />
+        <Sidebar orgs={orgs} role={role} />
       </Suspense>
       <main className="ml-56 pt-14 min-h-screen">
         <AnnouncementBanner announcements={announcements} />
