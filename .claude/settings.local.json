@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(C:\\\\Users\\\\mfote\\\\.claude\\\\plugins\\\\cache\\\\claude-plugins-official\\\\superpowers\\\\5.0.7\\\\skills\\\\brainstorming\\\\scripts\\\\start-server.sh *)",
+      "Bash(git init *)",
+      "Bash(npm install *)",
+      "Bash(git -C /c/Mayur/Projects/DevPortal add package.json turbo.json .gitignore packages/db/package.json packages/trpc/package.json packages/ui/package.json)",
+      "Bash(git -C /c/Mayur/Projects/DevPortal status)",
+      "Bash(git *)",
+      "Bash(npx prisma *)",
+      "Bash(npm test *)",
+      "Bash(openssl rand *)",
+      "Bash(npm run *)",
+      "PowerShell(Stop-Process *)",
+      "Bash(npm --version)",
+      "Bash(xargs grep *)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -TimeoutSec 5 -UseBasicParsing; Write-Host \"Status: $\\($r.StatusCode\\)\" } catch { Write-Host \"Error: $_\" })",
+      "PowerShell($content = Get-Content \"C:\\\\Mayur\\\\Projects\\\\DevPortal\\\\apps\\\\web\\\\.env.local\" -Raw; $line = \\($content -split \"`n\" | Where-Object { $_ -match \"ANTHROPIC_API_KEY\" }\\); Write-Host \"Line bytes at end: $\\(\\([System.Text.Encoding]::UTF8.GetBytes\\($line\\) | Select-Object -Last 5 | ForEach-Object { $_.ToString\\('X2'\\) }\\) -join ' '\\)\")",
+      "Bash(bash *)"
+    ]
+  }
+}

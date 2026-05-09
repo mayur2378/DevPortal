@@ -32,9 +32,13 @@ function generateFromSchema(schema: any): unknown {
 }
 
 function findOperation(spec: any, operationId: string): { method: string; path: string; operation: any } | null {
+  const HTTP_METHODS = ["get", "post", "put", "patch", "delete", "head", "options"];
   for (const [path, methods] of Object.entries(spec.paths ?? {})) {
     for (const [method, op] of Object.entries(methods as any)) {
-      if ((op as any).operationId === operationId) {
+      if (!HTTP_METHODS.includes(method)) continue;
+      const native = (op as any).operationId;
+      const fallback = `${method}${path}`;
+      if (native === operationId || fallback === operationId) {
         return { method, path, operation: op };
       }
     }

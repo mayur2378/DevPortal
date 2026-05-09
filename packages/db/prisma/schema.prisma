@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -14,7 +15,7 @@ model User {
   name         String
   role         UserRole        @default(USER)
   memberships  OrgMembership[]
-  apis         API[]
+  apis         Api[]
   createdAt    DateTime        @default(now())
   passwordResetTokens PasswordResetToken[]
 }
@@ -24,7 +25,7 @@ model Organization {
   name        String
   slug        String          @unique
   memberships OrgMembership[]
-  apis        API[]
+  apis        Api[]
   createdAt   DateTime        @default(now())
 }
 
@@ -39,7 +40,7 @@ model OrgMembership {
   @@id([userId, orgId])
 }
 
-model API {
+model Api {
   id          String       @id @default(cuid())
   org         Organization @relation(fields: [orgId], references: [id])
   orgId       String
@@ -50,15 +51,16 @@ model API {
   description String?
   type        APIType
   category    String?
-  versions    APIVersion[]
+  versions    ApiVersion[]
   createdAt   DateTime     @default(now())
 
   @@unique([orgId, slug])
+  @@map("API")
 }
 
-model APIVersion {
+model ApiVersion {
   id          String        @id @default(cuid())
-  api         API           @relation(fields: [apiId], references: [id])
+  api         Api           @relation(fields: [apiId], references: [id])
   apiId       String
   version     String
   specKey     String
@@ -70,11 +72,12 @@ model APIVersion {
   createdAt   DateTime      @default(now())
 
   @@unique([apiId, version])
+  @@map("APIVersion")
 }
 
 model DocPage {
   id           String     @id @default(cuid())
-  apiVersion   APIVersion @relation(fields: [apiVersionId], references: [id])
+  apiVersion   ApiVersion @relation(fields: [apiVersionId], references: [id])
   apiVersionId String
   slug         String
   title        String
@@ -86,7 +89,7 @@ model DocPage {
 
 model MockConfig {
   id           String     @id @default(cuid())
-  apiVersion   APIVersion @relation(fields: [apiVersionId], references: [id])
+  apiVersion   ApiVersion @relation(fields: [apiVersionId], references: [id])
   apiVersionId String     @unique
   baseDelayMs  Int        @default(0)
 }

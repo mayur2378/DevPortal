@@ -21,6 +21,9 @@ restRouter.post("/rest", async (req, res) => {
     const text = buffer.toString("utf8");
     const spec = text.trim().startsWith("{") ? JSON.parse(text) : yaml.load(text);
     const mock = await generateOpenApiResponse(spec as any, operationId, preferredStatus ?? "200");
+    if (mock.body === null || mock.body === undefined) {
+      return res.status(mock.statusCode).end();
+    }
     return res.status(mock.statusCode).set(mock.headers).json(mock.body);
   } catch (err: any) {
     return res.status(500).json({ error: err.message });

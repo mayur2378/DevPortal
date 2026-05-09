@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
     body: JSON.stringify({ specKey: version.specKey, operationId, preferredStatus }),
   });
 
-  const data = await response.json();
-  return NextResponse.json(data, { status: response.status });
+  const text = await response.text();
+  if (!text) return new Response(null, { status: response.status });
+  return NextResponse.json(JSON.parse(text), { status: response.status });
 }

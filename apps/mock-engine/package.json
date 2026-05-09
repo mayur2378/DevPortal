@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@devportal/db": "*",
+    "dotenv": "^16.4.0",
     "@readme/openapi-parser": "^6.1.1",
     "cors": "^2.8.5",
     "express": "^4.19.0",

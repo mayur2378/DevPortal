@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { MockTester } from "@/components/api-detail/MockTester";
 import { extractOperations } from "@/lib/spec-utils";
 import { readSpec } from "@devportal/db";
+import yaml from "js-yaml";
 
 interface Props {
   params: { orgSlug: string; apiSlug: string; version: string };
@@ -22,8 +23,8 @@ export default async function TryItPage({ params }: Props) {
   if (api.type === "REST") {
     const buffer = await readSpec(versionFull.specKey);
     const text = buffer.toString("utf8");
-    const spec = text.trim().startsWith("{") ? JSON.parse(text) : {};
-    operations = extractOperations(spec);
+    const spec = (text.trim().startsWith("{") ? JSON.parse(text) : yaml.load(text)) as any;
+    operations = extractOperations(spec ?? {});
   }
 
   return (

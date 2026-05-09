@@ -2,6 +2,7 @@ import { createCaller } from "@/lib/trpc/server";
 import { notFound } from "next/navigation";
 import { DocPageRenderer } from "@/components/api-detail/DocPageRenderer";
 import { DocPageNav } from "@/components/api-detail/DocPageNav";
+import { GenerateDocsButton } from "@/components/api-detail/GenerateDocsButton";
 
 interface Props { params: { orgSlug: string; apiSlug: string; version: string; slug?: string[] } }
 
@@ -23,11 +24,17 @@ export default async function DocsPage({ params }: Props) {
       <div className="flex-1 min-w-0">
         {page ? (
           <>
-            <h2 className="text-xl font-bold text-white mb-4">{page.title}</h2>
+            <div className="flex items-start justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">{page.title}</h2>
+              <GenerateDocsButton versionId={publishedVersion.id} />
+            </div>
             <DocPageRenderer content={page.content} />
           </>
         ) : (
-          <p className="text-slate-400 italic">No documentation pages yet.</p>
+          <div className="space-y-4">
+            <p className="text-slate-400 italic">No documentation pages yet.</p>
+            <GenerateDocsButton versionId={publishedVersion.id} />
+          </div>
         )}
       </div>
     </div>

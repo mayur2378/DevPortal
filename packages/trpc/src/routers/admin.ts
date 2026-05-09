@@ -14,9 +14,16 @@ export const adminRouter = createTRPCRouter({
   org: createTRPCRouter({
     create: adminProcedure
       .input(z.object({ name: z.string().min(2), slug: z.string().regex(/^[a-z0-9-]+$/) }))
-      .mutation(({ ctx, input }) =>
-        ctx.prisma.organization.create({ data: input, select: orgSelect })
-      ),
+      .mutation(async ({ ctx, input }) => {
+        const org = await ctx.prisma.organization.create({
+          data: {
+            ...input,
+            memberships: { create: { userId: ctx.session!.user.id, role: "ADMIN" } },
+          },
+          select: orgSelect,
+        });
+        return org;
+      }),
 
     listAll: adminProcedure.query(({ ctx }) =>
       ctx.prisma.organization.findMany({ select: orgSelect, orderBy: { name: "asc" } })
