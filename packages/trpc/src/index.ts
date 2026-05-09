@@ -18,6 +18,7 @@ import { apiVersionRouter } from "./routers/apiVersion";
 import { adminRouter } from "./routers/admin";
 import { applicationRouter } from "./routers/application";
 import { subscriptionRouter } from "./routers/subscription";
+import { governanceRouter } from "./routers/governance";
 
 export const appRouter = createTRPCRouter({
   auth: authRouter,
@@ -28,6 +29,7 @@ export const appRouter = createTRPCRouter({
   admin: adminRouter,
   application: applicationRouter,
   subscription: subscriptionRouter,
+  governance: governanceRouter,
 });
 
 export type AppRouter = typeof appRouter;
