@@ -10,7 +10,7 @@ export async function GET(_req: NextRequest, { params }: { params: { versionId: 
     where: { id: params.versionId },
     select: { specKey: true, specType: true, status: true },
   });
-  if (!version || version.status !== "PUBLISHED") return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!version || version.status !== "PUBLISHED" || !version.specKey) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const buffer = await readSpec(version.specKey);
   const contentType = version.specType === "REST"

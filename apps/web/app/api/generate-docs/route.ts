@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     where: { id: versionId },
     select: { specKey: true, specType: true },
   });
-  if (!version) return NextResponse.json({ error: "Version not found" }, { status: 404 });
+  if (!version || !version.specKey) return NextResponse.json({ error: "Version not found or has no spec" }, { status: 404 });
 
   const buffer = await readSpec(version.specKey);
   const text = buffer.toString("utf8");

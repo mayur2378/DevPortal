@@ -12,7 +12,7 @@ export async function POST(req: NextRequest, { params }: { params: { versionId: 
     where: { id: params.versionId },
     select: { specKey: true, status: true },
   });
-  if (!version || version.status !== "PUBLISHED") {
+  if (!version || version.status !== "PUBLISHED" || !version.specKey) {
     return NextResponse.json({ errors: [{ message: "Not found" }] }, { status: 404 });
   }
 

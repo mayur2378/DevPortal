@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     where: { id: versionId },
     select: { specKey: true, status: true },
   });
-  if (!version || version.status !== "PUBLISHED") {
+  if (!version || version.status !== "PUBLISHED" || !version.specKey) {
     return NextResponse.json({ error: "Version not found or not published" }, { status: 404 });
   }
 

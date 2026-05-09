@@ -20,7 +20,7 @@ export default async function TryItPage({ params }: Props) {
   const versionFull = await caller.apiVersion.getSpecContent({ versionId: publishedVersion.id });
   let operations: ReturnType<typeof extractOperations> = [];
 
-  if (api.type === "REST") {
+  if (api.type === "REST" && versionFull.specKey) {
     const buffer = await readSpec(versionFull.specKey);
     const text = buffer.toString("utf8");
     const spec = (text.trim().startsWith("{") ? JSON.parse(text) : yaml.load(text)) as any;
