@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { VisibilityChip } from "@/components/ui/VisibilityChip";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 
 interface Api {
   id: string;
@@ -42,6 +44,26 @@ export function ApiCard({ api }: { api: Api }) {
       {api.description && (
         <p className="text-sm text-slate-400 line-clamp-2 mb-3">{api.description}</p>
       )}
+
+      {(() => {
+        const latestVersion = (api as any).versions?.[0];
+        return (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {(api as any).visibility && <VisibilityChip visibility={(api as any).visibility} />}
+            {latestVersion?.lifecycleStatus && <StatusBadge status={latestVersion.lifecycleStatus} />}
+            {(api as any).domain && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-slate-700 text-slate-300">
+                {(api as any).domain.name}
+              </span>
+            )}
+            {(api as any).tags?.slice(0, 3).map((at: any) => (
+              <span key={at.tag.name} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-400 border border-slate-700">
+                #{at.tag.name}
+              </span>
+            ))}
+          </div>
+        );
+      })()}
 
       <div className="flex items-center justify-between text-xs text-slate-500">
         <span>{api.org.name}</span>

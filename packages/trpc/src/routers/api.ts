@@ -19,28 +19,43 @@ export const apiRouter = createTRPCRouter({
   list: publicProcedure
     .input(
       z.object({
-        orgSlug: z.string().optional(),
-        type: z.enum(["REST", "GRAPHQL"]).optional(),
-        search: z.string().optional(),
+        orgSlug:         z.string().optional(),
+        type:            z.string().optional(),
+        visibility:      z.enum(["INTERNAL", "PARTNER", "PUBLIC"]).optional(),
+        domainId:        z.string().optional(),
+        tags:            z.array(z.string()).optional(),
+        lifecycleStatus: z.string().optional(),
+        search:          z.string().optional(),
       }).optional()
     )
-    .query(({ ctx, input }) =>
-      ctx.prisma.api.findMany({
+    .query(async ({ ctx, input }) => {
+      return ctx.db.api.findMany({
         where: {
-          ...(input?.orgSlug ? { org: { slug: input.orgSlug } } : {}),
-          ...(input?.type ? { type: input.type } : {}),
-          ...(input?.search
-            ? {
-                OR: [
-                  { name: { contains: input.search, mode: "insensitive" } },
-                  { description: { contains: input.search, mode: "insensitive" } },
-                ],
-              }
-            : {}),
-          versions: { some: { status: "PUBLISHED" } },
+          ...(input?.orgSlug && { org: { slug: input.orgSlug } }),
+          ...(input?.type && { type: input.type as any }),
+          ...(input?.visibility && { visibility: input.visibility }),
+          ...(input?.domainId && { domainId: input.domainId }),
+          ...(input?.lifecycleStatus && { versions: { some: { lifecycleStatus: input.lifecycleStatus as any } } }),
+          ...(input?.tags?.length && { tags: { some: { tag: { name: { in: input.tags } } } } }),
+          ...(input?.search && { OR: [{ name: { contains: input.search, mode: "insensitive" } }, { description: { contains: input.search, mode: "insensitive" } }] }),
         },
-        select: apiSelect,
+        include: {
+          org: true,
+          owner: { select: { id: true, name: true, email: true } },
+          domain: true,
+          tags: { include: { tag: true } },
+          versions: { orderBy: { createdAt: "desc" }, take: 1, select: { version: true, status: true, lifecycleStatus: true } },
+        },
         orderBy: { createdAt: "desc" },
+      });
+    }),
+
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(({ ctx, input }) =>
+      ctx.db.api.findUniqueOrThrow({
+        where: { id: input.id },
+        include: { org: true, owner: { select: { id: true, name: true, email: true } } },
       })
     ),
 
@@ -68,7 +83,7 @@ export const apiRouter = createTRPCRouter({
         orgId: z.string(),
         name: z.string().min(2),
         slug: z.string().regex(/^[a-z0-9-]+$/),
-        type: z.enum(["REST", "GRAPHQL"]),
+        type: z.enum(["REST", "GRAPHQL", "ASYNC_API", "EVENT", "WEBHOOK", "SOAP"]),
         description: z.string().optional(),
         category: z.string().optional(),
       })
