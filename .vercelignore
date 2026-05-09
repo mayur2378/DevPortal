@@ -1,0 +1,10 @@
+node_modules
+.next
+.turbo
+dist
+.env
+.env.local
+.worktrees
+.spec-storage
+packages/db/prisma/migrations
+apps/web/tsconfig.tsbuildinfo
