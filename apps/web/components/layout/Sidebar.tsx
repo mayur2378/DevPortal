@@ -83,6 +83,33 @@ export function Sidebar({ orgs }: SidebarProps) {
           ))}
         </ul>
       </div>
+
+      <div className="mt-6">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+          Developer
+        </p>
+        <ul className="space-y-0.5">
+          {[
+            { href: "/my-apps", label: "My Applications" },
+            { href: "/my-subscriptions", label: "My Subscriptions" },
+            { href: "/approvals", label: "Approval Queue" },
+          ].map(({ href, label }) => (
+            <li key={href}>
+              <Link
+                href={href}
+                className={cn(
+                  "block px-3 py-1.5 rounded-md text-sm transition-colors",
+                  pathname === href
+                    ? "bg-slate-800 text-white"
+                    : "text-slate-400 hover:text-white hover:bg-slate-800"
+                )}
+              >
+                {label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
     </aside>
   );
 }
