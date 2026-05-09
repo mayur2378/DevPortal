@@ -23,7 +23,8 @@
       "Bash(PRISMA_MIGRATE_SKIP_GENERATE=false npx prisma migrate dev --name enterprise_foundation --skip-seed)",
       "Bash(tsx prisma/seed.ts)",
       "Bash(npx tsx *)",
-      "Bash(npx next *)"
+      "Bash(npx next *)",
+      "Bash(npx tsc *)"
     ]
   }
 }
