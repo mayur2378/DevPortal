@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd ../.. && npm run build --filter=web",
+  "outputDirectory": "apps/web/.next",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "rewrites": [
+    { "source": "/mock/:path*", "destination": "http://localhost:3001/mock/:path*" }
+  ]
+}
