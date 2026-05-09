@@ -32,7 +32,8 @@ export default async function TryItPage({ params }: Props) {
     operations = extractOperations(spec ?? {});
   }
 
-  const curlExamples = spec ? generateCurlExamples(spec, process.env.MOCK_ENGINE_URL ?? "http://localhost:3001") : [];
+  const mockBaseUrl = process.env.NEXTAUTH_URL ?? process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
+  const curlExamples = spec ? generateCurlExamples(spec, mockBaseUrl) : [];
 
   const samplePayloads = spec ? Object.entries(spec.paths ?? {}).flatMap(([path, methods]: [string, any]) =>
     Object.entries(methods).map(([method, op]: [string, any]) => ({

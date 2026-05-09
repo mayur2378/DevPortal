@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { prisma } from "@devportal/db";
-
-const MOCK_ENGINE_URL = process.env.MOCK_ENGINE_URL ?? "http://localhost:3001";
+import { prisma, readSpec } from "@devportal/db";
+import { generateOpenApiResponse } from "@/lib/mock/openapi";
+import yaml from "js-yaml";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -18,13 +18,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Version not found or not published" }, { status: 404 });
   }
 
-  const response = await fetch(`${MOCK_ENGINE_URL}/mock/rest`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ specKey: version.specKey, operationId, preferredStatus }),
-  });
+  const buffer = await readSpec(version.specKey);
+  const text = buffer.toString("utf8");
+  const spec = text.trim().startsWith("{") ? JSON.parse(text) : yaml.load(text);
+  const mock = await generateOpenApiResponse(spec as any, operationId, preferredStatus ?? "200");
 
-  const text = await response.text();
-  if (!text) return new Response(null, { status: response.status });
-  return NextResponse.json(JSON.parse(text), { status: response.status });
+  if (mock.body === null || mock.body === undefined) {
+    return new Response(null, { status: mock.statusCode });
+  }
+  return NextResponse.json(mock.body, { status: mock.statusCode });
 }
