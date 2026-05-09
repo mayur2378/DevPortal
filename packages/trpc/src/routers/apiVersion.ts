@@ -80,6 +80,15 @@ export const apiVersionRouter = createTRPCRouter({
       return version;
     }),
 
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(({ ctx, input }) =>
+      ctx.prisma.apiVersion.findUniqueOrThrow({
+        where: { id: input.id },
+        select: { id: true, version: true, specKey: true, specUrl: true, apiId: true },
+      })
+    ),
+
   docPage: createTRPCRouter({
     upsert: protectedProcedure
       .input(
