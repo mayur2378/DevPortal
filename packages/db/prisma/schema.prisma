@@ -9,15 +9,25 @@ datasource db {
 }
 
 model User {
-  id           String          @id @default(cuid())
-  email        String          @unique
-  passwordHash String
-  name         String
-  role         UserRole        @default(USER)
-  memberships  OrgMembership[]
-  apis         Api[]
-  createdAt    DateTime        @default(now())
-  passwordResetTokens PasswordResetToken[]
+  id                          String                       @id @default(cuid())
+  email                       String                       @unique
+  passwordHash                String
+  name                        String
+  role                        UserRole                     @default(USER)
+  memberships                 OrgMembership[]
+  ownedApis                   Api[]                        @relation("ApiOwner")
+  applications                Application[]
+  subscriptionRequests        SubscriptionRequest[]        @relation("Requester")
+  subscriptionReviews         SubscriptionRequest[]        @relation("Reviewer")
+  governanceReviews           GovernanceReview[]
+  lifecycleEvents             LifecycleEvent[]
+  supportTickets              SupportTicket[]
+  comments                    Comment[]
+  announcements               Announcement[]
+  ownedProducts               APIProduct[]
+  productSubscriptionRequests ProductSubscriptionRequest[]
+  createdAt                   DateTime                     @default(now())
+  passwordResetTokens         PasswordResetToken[]
 }
 
 model Organization {
@@ -41,35 +51,63 @@ model OrgMembership {
 }
 
 model Api {
-  id          String       @id @default(cuid())
-  org         Organization @relation(fields: [orgId], references: [id])
-  orgId       String
-  owner       User         @relation(fields: [ownerId], references: [id])
-  ownerId     String
-  name        String
-  slug        String
-  description String?
-  type        APIType
-  category    String?
-  versions    ApiVersion[]
-  createdAt   DateTime     @default(now())
+  id                   String               @id @default(cuid())
+  org                  Organization         @relation(fields: [orgId], references: [id])
+  orgId                String
+  owner                User                 @relation("ApiOwner", fields: [ownerId], references: [id])
+  ownerId              String
+  name                 String
+  slug                 String
+  description          String?
+  type                 APIType
+  category             String?
+  visibility           Visibility           @default(INTERNAL)
+  businessCapability   String?
+  systemOfRecord       String?
+  supportContact       String?
+  piiIndicator         Boolean              @default(false)
+  phiIndicator         Boolean              @default(false)
+  dataClassification   DataClassification   @default(INTERNAL)
+  gatewayRef           String?
+  runtimeEndpoint      String?
+  domain               Domain?              @relation(fields: [domainId], references: [id])
+  domainId             String?
+  tags                 ApiTag[]
+  versions             ApiVersion[]
+  subscriptionRequests SubscriptionRequest[]
+  subscriptions        Subscription[]
+  governanceReviews    GovernanceReview[]
+  lifecycleEvents      LifecycleEvent[]
+  usageMetrics         UsageMetric[]
+  comments             Comment[]
+  products             APIProductItem[]
+  createdAt            DateTime             @default(now())
 
   @@unique([orgId, slug])
   @@map("API")
 }
 
 model ApiVersion {
-  id          String        @id @default(cuid())
-  api         Api           @relation(fields: [apiId], references: [id])
-  apiId       String
-  version     String
-  specKey     String
-  specType    APIType
-  status      VersionStatus @default(DRAFT)
-  docPages    DocPage[]
-  mockConfig  MockConfig?
-  publishedAt DateTime?
-  createdAt   DateTime      @default(now())
+  id              String          @id @default(cuid())
+  api             Api             @relation(fields: [apiId], references: [id])
+  apiId           String
+  version         String
+  specKey         String?
+  specUrl         String?
+  specType        APIType
+  status          VersionStatus   @default(DRAFT)
+  lifecycleStatus LifecycleStatus @default(DRAFT)
+  retirementDate  DateTime?
+  changelog       String?         @db.Text
+  releaseNotes    String?         @db.Text
+  maturityScore   Int?
+  authMethod      String?
+  rateLimitPolicy String?
+  slaInfo         String?
+  docPages        DocPage[]
+  mockConfig      MockConfig?
+  publishedAt     DateTime?
+  createdAt       DateTime        @default(now())
 
   @@unique([apiId, version])
   @@map("APIVersion")
@@ -103,9 +141,192 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
 }
 
+model Application {
+  id                   String                @id @default(cuid())
+  owner                User                  @relation(fields: [ownerId], references: [id])
+  ownerId              String
+  name                 String
+  description          String?
+  mockClientId         String                @default(cuid())
+  mockClientSecret     String                @default(cuid())
+  subscriptionRequests SubscriptionRequest[]
+  subscriptions        Subscription[]
+  createdAt            DateTime              @default(now())
+}
+
+model SubscriptionRequest {
+  id            String             @id @default(cuid())
+  application   Application        @relation(fields: [applicationId], references: [id])
+  applicationId String
+  api           Api                @relation(fields: [apiId], references: [id])
+  apiId         String
+  requester     User               @relation("Requester", fields: [requesterId], references: [id])
+  requesterId   String
+  reviewer      User?              @relation("Reviewer", fields: [reviewerId], references: [id])
+  reviewerId    String?
+  environment   String             @default("dev")
+  status        SubscriptionStatus @default(PENDING)
+  comments      String?            @db.Text
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+model Subscription {
+  id            String      @id @default(cuid())
+  application   Application @relation(fields: [applicationId], references: [id])
+  applicationId String
+  api           Api         @relation(fields: [apiId], references: [id])
+  apiId         String
+  environment   String      @default("dev")
+  grantedAt     DateTime    @default(now())
+  revokedAt     DateTime?
+
+  @@unique([applicationId, apiId, environment])
+}
+
+model GovernanceChecklist {
+  id          String             @id @default(cuid())
+  name        String
+  description String?
+  apiType     APIType?
+  required    Boolean            @default(false)
+  reviews     GovernanceReview[]
+  createdAt   DateTime           @default(now())
+}
+
+model GovernanceReview {
+  id          String              @id @default(cuid())
+  api         Api                 @relation(fields: [apiId], references: [id])
+  apiId       String
+  reviewer    User                @relation(fields: [reviewerId], references: [id])
+  reviewerId  String
+  checklist   GovernanceChecklist @relation(fields: [checklistId], references: [id])
+  checklistId String
+  passed      Boolean
+  notes       String?
+  reviewedAt  DateTime            @default(now())
+}
+
+model LifecycleEvent {
+  id        String             @id @default(cuid())
+  api       Api                @relation(fields: [apiId], references: [id])
+  apiId     String
+  actor     User               @relation(fields: [actorId], references: [id])
+  actorId   String
+  type      LifecycleEventType
+  notes     String?
+  createdAt DateTime           @default(now())
+}
+
+model UsageMetric {
+  id        String   @id @default(cuid())
+  api       Api      @relation(fields: [apiId], references: [id])
+  apiId     String
+  month     String
+  calls     Int      @default(0)
+  consumers Int      @default(0)
+  docViews  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([apiId, month])
+}
+
+model Domain {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  apis        Api[]
+  createdAt   DateTime @default(now())
+}
+
+model SupportTicket {
+  id          String              @id @default(cuid())
+  submitter   User                @relation(fields: [submitterId], references: [id])
+  submitterId String
+  subject     String
+  body        String              @db.Text
+  status      SupportTicketStatus @default(OPEN)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  api       Api      @relation(fields: [apiId], references: [id])
+  apiId     String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model Announcement {
+  id          String    @id @default(cuid())
+  title       String
+  body        String    @db.Text
+  active      Boolean   @default(true)
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+}
+
+model APIProduct {
+  id                   String                       @id @default(cuid())
+  name                 String
+  slug                 String                       @unique
+  description          String?
+  owner                User                         @relation(fields: [ownerId], references: [id])
+  ownerId              String
+  roadmap              String?                      @db.Text
+  documentation        String?                      @db.Text
+  apis                 APIProductItem[]
+  subscriptionRequests ProductSubscriptionRequest[]
+  createdAt            DateTime                     @default(now())
+}
+
+model APIProductItem {
+  product   APIProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  api       Api        @relation(fields: [apiId], references: [id], onDelete: Cascade)
+  apiId     String
+
+  @@id([productId, apiId])
+}
+
+model ProductSubscriptionRequest {
+  id          String             @id @default(cuid())
+  product     APIProduct         @relation(fields: [productId], references: [id])
+  productId   String
+  requester   User               @relation(fields: [requesterId], references: [id])
+  requesterId String
+  status      SubscriptionStatus @default(PENDING)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model Tag {
+  id   String   @id @default(cuid())
+  name String   @unique
+  apis ApiTag[]
+}
+
+model ApiTag {
+  api   Api    @relation(fields: [apiId], references: [id], onDelete: Cascade)
+  apiId String
+  tag   Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tagId String
+
+  @@id([apiId, tagId])
+}
+
 enum UserRole {
   USER
   SUPERADMIN
+  API_PRODUCT_OWNER
+  API_DEVELOPER
+  GOVERNANCE_REVIEWER
+  SUPPORT_USER
 }
 
 enum OrgRole {
@@ -116,10 +337,59 @@ enum OrgRole {
 enum APIType {
   REST
   GRAPHQL
+  ASYNC_API
+  EVENT
+  WEBHOOK
+  SOAP
 }
 
 enum VersionStatus {
   DRAFT
   PUBLISHED
   DEPRECATED
+}
+
+enum Visibility {
+  INTERNAL
+  PARTNER
+  PUBLIC
+}
+
+enum LifecycleStatus {
+  DRAFT
+  BETA
+  ACTIVE
+  DEPRECATED
+  RETIRED
+}
+
+enum DataClassification {
+  PUBLIC
+  INTERNAL
+  CONFIDENTIAL
+  RESTRICTED
+}
+
+enum SubscriptionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REVOKED
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum LifecycleEventType {
+  CREATED
+  PUBLISHED
+  DEPRECATED
+  RETIRED
+  VERSION_ADDED
+  SPEC_UPDATED
+  STATUS_CHANGED
 }
