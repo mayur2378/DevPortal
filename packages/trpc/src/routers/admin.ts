@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { createTRPCRouter, adminProcedure } from "../trpc";
+import { createTRPCRouter, adminProcedure, publicProcedure } from "../trpc";
 
 const orgSelect = {
   id: true,
@@ -102,7 +102,7 @@ export const adminRouter = createTRPCRouter({
     ),
 
     setPortalRole: adminProcedure
-      .input(z.object({ userId: z.string(), role: z.enum(["USER", "SUPERADMIN"]) }))
+      .input(z.object({ userId: z.string(), role: z.enum(["USER", "SUPERADMIN", "API_PRODUCT_OWNER", "API_DEVELOPER", "GOVERNANCE_REVIEWER", "SUPPORT_USER"]) }))
       .mutation(({ ctx, input }) =>
         ctx.prisma.user.update({
           where: { id: input.userId },
@@ -110,5 +110,12 @@ export const adminRouter = createTRPCRouter({
           select: { id: true, role: true },
         })
       ),
+  }),
+
+  domain: createTRPCRouter({
+    list: publicProcedure.query(({ ctx }) => ctx.prisma.domain.findMany({ orderBy: { name: "asc" } })),
+  }),
+  tag: createTRPCRouter({
+    list: publicProcedure.query(({ ctx }) => ctx.prisma.tag.findMany({ orderBy: { name: "asc" } })),
   }),
 });
