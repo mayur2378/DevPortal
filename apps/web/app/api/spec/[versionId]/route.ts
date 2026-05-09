@@ -17,5 +17,5 @@ export async function GET(_req: NextRequest, { params }: { params: { versionId: 
     ? (version.specKey.endsWith(".json") ? "application/json" : "application/yaml")
     : "text/plain";
 
-  return new NextResponse(buffer, { headers: { "Content-Type": contentType } });
+  return new NextResponse(new Uint8Array(buffer), { headers: { "Content-Type": contentType } });
 }
