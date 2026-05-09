@@ -20,6 +20,7 @@ import { applicationRouter } from "./routers/application";
 import { subscriptionRouter } from "./routers/subscription";
 import { governanceRouter } from "./routers/governance";
 import { lifecycleRouter } from "./routers/lifecycle";
+import { analyticsRouter } from "./routers/analytics";
 
 export const appRouter = createTRPCRouter({
   auth: authRouter,
@@ -32,6 +33,7 @@ export const appRouter = createTRPCRouter({
   subscription: subscriptionRouter,
   governance: governanceRouter,
   lifecycle: lifecycleRouter,
+  analytics: analyticsRouter,
 });
 
 export type AppRouter = typeof appRouter;

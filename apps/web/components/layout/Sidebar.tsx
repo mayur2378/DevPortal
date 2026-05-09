@@ -95,6 +95,7 @@ export function Sidebar({ orgs }: SidebarProps) {
             { href: "/approvals", label: "Approval Queue" },
             { href: "/governance", label: "Governance" },
             { href: "/lifecycle", label: "Lifecycle" },
+            { href: "/analytics", label: "Analytics" },
           ].map(({ href, label }) => (
             <li key={href}>
               <Link
