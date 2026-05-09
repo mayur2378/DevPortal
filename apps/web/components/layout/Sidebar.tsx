@@ -96,6 +96,7 @@ export function Sidebar({ orgs }: SidebarProps) {
             { href: "/governance", label: "Governance" },
             { href: "/lifecycle", label: "Lifecycle" },
             { href: "/analytics", label: "Analytics" },
+            { href: "/support", label: "Support" },
           ].map(({ href, label }) => (
             <li key={href}>
               <Link

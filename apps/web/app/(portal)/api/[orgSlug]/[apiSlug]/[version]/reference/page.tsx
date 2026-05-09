@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { SpecExplorer } from "@/components/api-detail/SpecExplorer";
 import { DocMetaFields } from "@/components/api-detail/DocMetaFields";
 import { AsyncAPIRenderer } from "@/components/api-detail/AsyncAPIRenderer";
+import { CommentThread } from "@/components/support/CommentThread";
+import { auth } from "@/lib/auth";
 
 interface Props { params: { orgSlug: string; apiSlug: string; version: string } }
 
@@ -16,7 +18,11 @@ export default async function ReferencePage({ params }: Props) {
   const publishedVersion = api.versions.find((v) => v.version === params.version);
   if (!publishedVersion) notFound();
 
-  const apiVersion = await caller.apiVersion.getSpecContent({ versionId: publishedVersion.id }).catch(() => null);
+  const [apiVersion, comments, session] = await Promise.all([
+    caller.apiVersion.getSpecContent({ versionId: publishedVersion.id }).catch(() => null),
+    caller.support.getComments({ apiId: api.id }),
+    auth(),
+  ]);
 
   const isAsync = ASYNC_TYPES.includes(api.type as string);
 
@@ -34,6 +40,9 @@ export default async function ReferencePage({ params }: Props) {
       ) : (
         <SpecExplorer versionId={publishedVersion.id} specType={api.type as "REST" | "GRAPHQL"} />
       )}
+      <div className="mt-10 pt-8 border-t border-slate-700/50">
+        <CommentThread apiId={api.id} initialComments={comments as any} currentUserId={session?.user?.id} />
+      </div>
     </div>
   );
 }
