@@ -17,6 +17,7 @@
     "paths": {
       "@/*": ["./*"],
       "@devportal/trpc": ["../../packages/trpc/src/index.ts"],
+      "@devportal/trpc/*": ["../../packages/trpc/src/*"],
       "@devportal/db": ["../../packages/db/src/index.ts"]
     }
   },
