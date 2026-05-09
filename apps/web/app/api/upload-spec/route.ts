@@ -22,9 +22,8 @@ export async function POST(req: NextRequest) {
 
   if (!ext) return NextResponse.json({ error: "Unsupported file type. Use .json, .yaml, or .graphql" }, { status: 400 });
 
-  const key = `${randomUUID()}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
-  await saveSpec(key, buffer);
+  const key = await saveSpec(`${randomUUID()}.${ext}`, buffer);
 
   return NextResponse.json({ key });
 }
