@@ -16,6 +16,8 @@ import { userRouter } from "./routers/user";
 import { apiRouter } from "./routers/api";
 import { apiVersionRouter } from "./routers/apiVersion";
 import { adminRouter } from "./routers/admin";
+import { applicationRouter } from "./routers/application";
+import { subscriptionRouter } from "./routers/subscription";
 
 export const appRouter = createTRPCRouter({
   auth: authRouter,
@@ -24,6 +26,8 @@ export const appRouter = createTRPCRouter({
   api: apiRouter,
   apiVersion: apiVersionRouter,
   admin: adminRouter,
+  application: applicationRouter,
+  subscription: subscriptionRouter,
 });
 
 export type AppRouter = typeof appRouter;

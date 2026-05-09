@@ -100,6 +100,15 @@ export const apiRouter = createTRPCRouter({
       });
     }),
 
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(({ ctx, input }) =>
+      ctx.prisma.api.findUniqueOrThrow({
+        where: { id: input.id },
+        include: { org: true, owner: { select: { id: true, name: true, email: true } } },
+      })
+    ),
+
   delete: protectedProcedure
     .input(z.object({ apiId: z.string() }))
     .mutation(async ({ ctx, input }) => {
