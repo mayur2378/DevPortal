@@ -4,8 +4,9 @@ import type { Session } from "next-auth";
 export interface TRPCContext {
   session: Session | null;
   prisma: typeof prisma;
+  db: typeof prisma;
 }
 
 export function createTRPCContext(session: Session | null): TRPCContext {
-  return { session, prisma };
+  return { session, prisma, db: prisma };
 }
