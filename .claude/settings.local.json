@@ -17,7 +17,13 @@
       "PowerShell(Get-NetTCPConnection *)",
       "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -TimeoutSec 5 -UseBasicParsing; Write-Host \"Status: $\\($r.StatusCode\\)\" } catch { Write-Host \"Error: $_\" })",
       "PowerShell($content = Get-Content \"C:\\\\Mayur\\\\Projects\\\\DevPortal\\\\apps\\\\web\\\\.env.local\" -Raw; $line = \\($content -split \"`n\" | Where-Object { $_ -match \"ANTHROPIC_API_KEY\" }\\); Write-Host \"Line bytes at end: $\\(\\([System.Text.Encoding]::UTF8.GetBytes\\($line\\) | Select-Object -Last 5 | ForEach-Object { $_.ToString\\('X2'\\) }\\) -join ' '\\)\")",
-      "Bash(bash *)"
+      "Bash(bash *)",
+      "Bash(pnpm build *)",
+      "Bash(npx vitest *)",
+      "Bash(PRISMA_MIGRATE_SKIP_GENERATE=false npx prisma migrate dev --name enterprise_foundation --skip-seed)",
+      "Bash(tsx prisma/seed.ts)",
+      "Bash(npx tsx *)",
+      "Bash(npx next *)"
     ]
   }
 }
