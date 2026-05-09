@@ -8,7 +8,7 @@ export default async function AdminDashboardPage() {
     caller.admin.user.listAll(),
   ]);
 
-  const totalApis = orgs.reduce((sum, o) => sum + o._count.apis, 0);
+  const totalApis = orgs.reduce((sum: number, o: any) => sum + o._count.apis, 0);
 
   const stats = [
     { label: "Organizations", value: orgs.length, href: "/admin/orgs", color: "text-sky-400" },

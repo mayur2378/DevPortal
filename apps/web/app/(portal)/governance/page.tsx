@@ -7,7 +7,7 @@ export default async function GovernanceDashboardPage() {
   const apis = await caller.governance.getDashboard();
 
   const scoredApis = apis.filter((a) => a.governanceScore !== null);
-  const avgScore = scoredApis.length > 0 ? Math.round(scoredApis.reduce((sum, a) => sum + (a.governanceScore ?? 0), 0) / scoredApis.length) : 0;
+  const avgScore = scoredApis.length > 0 ? Math.round(scoredApis.reduce((sum: number, a: any) => sum + (a.governanceScore ?? 0), 0) / scoredApis.length) : 0;
 
   return (
     <div>
