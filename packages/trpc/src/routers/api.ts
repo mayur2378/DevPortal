@@ -45,6 +45,7 @@ export const apiRouter = createTRPCRouter({
           domain: true,
           tags: { include: { tag: true } },
           versions: { orderBy: { createdAt: "desc" }, take: 1, select: { version: true, status: true, lifecycleStatus: true } },
+          _count: { select: { versions: true } },
         },
         orderBy: { createdAt: "desc" },
       });
